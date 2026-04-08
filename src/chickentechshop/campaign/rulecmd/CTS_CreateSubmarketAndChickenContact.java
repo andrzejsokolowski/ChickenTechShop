@@ -6,8 +6,12 @@ import com.fs.starfarer.api.impl.campaign.missions.hub.BaseMissionHub;
 import com.fs.starfarer.api.impl.campaign.rulecmd.BaseCommandPlugin;
 import com.fs.starfarer.api.util.Misc;
 
+import lunalib.lunaSettings.LunaSettings;
+
+import chickentechshop.ChickenTechShop;
 import chickentechshop.campaign.intel.TechMarketContact;
 import chickentechshop.campaign.intel.missions.chicken.ChickenQuestUtils;
+import chickentechshop.campaign.submarkets.TechMarket;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
@@ -32,6 +36,16 @@ public class CTS_CreateSubmarketAndChickenContact extends BaseCommandPlugin {
         // Add Chicken Submarket to wherever Chicken is
         MarketAPI market = ChickenQuestUtils.getChickenMarket();
         market.addSubmarket("chicken_market");
+
+        // Apply configured starting level if LunaLib is present
+        if (Global.getSettings().getModManager().isModEnabled("lunalib")) {
+            Integer startingLevel = LunaSettings.getInt(ChickenTechShop.MOD_ID, ChickenTechShop.SETTING_STARTING_LEVEL);
+            if (startingLevel != null && startingLevel > 1) {
+                TechMarket techMarket = (TechMarket) market.getSubmarket("chicken_market").getPlugin();
+                techMarket.setTechMarketLevel(startingLevel);
+                techMarket.updateCargoForce();
+            }
+        }
 
         // Add Chicken as a contact
         PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);

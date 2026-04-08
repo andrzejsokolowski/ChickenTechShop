@@ -6,6 +6,8 @@ import java.util.Random;
 
 import org.apache.log4j.Logger;
 
+import lunalib.lunaSettings.LunaSettings;
+
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BaseCampaignEventListener;
@@ -24,6 +26,24 @@ public class ChickenTechShop extends BaseModPlugin {
     public static Logger log = Global.getLogger(ChickenTechShop.class);
 
     final static int LEVEL_REQ = 5;
+    public static final String MOD_ID = "chickentechshop";
+    public static final String SETTING_STARTING_LEVEL = "cts_startingLevel";
+
+    @Override
+    public void onApplicationLoad() throws Exception {
+        if (Global.getSettings().getModManager().isModEnabled("lunalib")) {
+            LunaSettings.addInt(
+                MOD_ID,
+                SETTING_STARTING_LEVEL,
+                "Starting Market Level",
+                "The level Chicken's Tech Market starts at (1-5). Only applies when the market is first created in a new game.",
+                1,
+                1,
+                5
+            );
+            LunaSettings.refresh(MOD_ID);
+        }
+    }
 
     // Inital setup, create chicken at the correct location
     // Or dont if she already exists
