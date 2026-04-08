@@ -32,7 +32,7 @@ public class ChickenTechShop extends BaseModPlugin {
     @Override
     public void onApplicationLoad() throws Exception {
         if (Global.getSettings().getModManager().isModEnabled("lunalib")) {
-            LunaSettings.addInt(
+            LunaSettings.SettingsCreator.addInt(
                 MOD_ID,
                 SETTING_STARTING_LEVEL,
                 "Starting Market Level",
@@ -41,7 +41,7 @@ public class ChickenTechShop extends BaseModPlugin {
                 1,
                 5
             );
-            LunaSettings.refresh(MOD_ID);
+            LunaSettings.SettingsCreator.refresh(MOD_ID);
         }
     }
 
