@@ -1,3 +1,10 @@
+Version 0.2.0 (2026-11-09)
+- The Tech Market now stocks every special item you can use: all colony items (including modded ones), every blueprint package, items with a right-click use, wormhole anchors and scanners, Shrouded items and DIY Planets items
+- The Tech Market now sells a modspec for every hull mod you don't know yet
+- The market level now sets how many of each special item are in stock instead of which ones
+- Fixed the jar name in mod_info.json so the mod also loads on case-sensitive systems
+- Update checks now point at this fork's releases
+
 Version 0.1.5
     Changes:
         - Update to Starsector 0.98a-RC5 - Now with Java 17!

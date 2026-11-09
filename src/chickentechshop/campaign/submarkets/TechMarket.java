@@ -2,18 +2,23 @@ package chickentechshop.campaign.submarkets;
 
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CargoAPI;
+import com.fs.starfarer.api.campaign.CargoAPI.CargoItemType;
 import com.fs.starfarer.api.campaign.CargoStackAPI;
 import com.fs.starfarer.api.campaign.CoreUIAPI;
+import com.fs.starfarer.api.campaign.FactionAPI;
 import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.SpecialItemData;
+import com.fs.starfarer.api.campaign.SpecialItemPlugin;
 import com.fs.starfarer.api.campaign.SpecialItemSpecAPI;
 import com.fs.starfarer.api.combat.ShipHullSpecAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
+import com.fs.starfarer.api.impl.campaign.econ.impl.ItemEffectsRepo;
 import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.ids.Items;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import com.fs.starfarer.api.impl.campaign.submarkets.BaseSubmarketPlugin;
 import com.fs.starfarer.api.loading.FighterWingSpecAPI;
+import com.fs.starfarer.api.loading.HullModSpecAPI;
 import com.fs.starfarer.api.loading.WeaponSpecAPI;
 import com.fs.starfarer.api.util.Highlights;
 import com.fs.starfarer.api.util.Misc;
@@ -22,7 +27,6 @@ import com.fs.starfarer.api.util.WeightedRandomPicker;
 import chickentechshop.campaign.intel.missions.chicken.ChickenQuestUtils;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
@@ -104,71 +108,101 @@ public class TechMarket extends BaseSubmarketPlugin {
         cargo.sort();
     }
 
-    // addSpecialTech adds tech items to shop, such as colony items, AI cores and
-    // blueprints
-    // For now, just getting basic items to work!
+    // Special items that are used through a dialog or the refit screen, so the
+    // checks in isUsableSpecialItem() can't see them
+    protected static final String[] EXTRA_USABLE_ITEM_IDS = { "wormhole_anchor", "wormhole_scanner",
+            "shrouded_substrate", "shrouded_thunderhead", "shrouded_mantle", "shrouded_lens" };
+
+    // Hardcoded for DIY planets, as they dont have any tags
+    protected static final String[] DIY_PLANETS_ITEM_IDS = { "atmo_mineralizer", "atmo_sublimator",
+            "solar_reflector", "tectonic_attenuator", "weather_core", "climate_sculptor", "gravity_oscillator",
+            "rad_remover" };
+
+    // Not in Items on 0.98a
+    protected static final String MODSPEC_ID = "modspec";
+
+    // Template items that only work with a target (ship, weapon, hull mod...)
+    // Blueprints and modspecs are added on their own
+    protected static final String[] TEMPLATE_ITEM_IDS = { MODSPEC_ID, Items.SHIP_BP, Items.WEAPON_BP,
+            Items.FIGHTER_BP, Items.INDUSTRY_BP };
+
+    // addSpecialTech stocks every special item the player can use: colony items,
+    // blueprint packages, items with a right-click use, DIY planet items and
+    // modspecs for every hull mod the player doesn't know yet.
+    // The market level sets how many of each item are in stock.
     protected void addSpecialTech() {
         CargoAPI cargo = getCargo();
-        HashMap<String, Boolean> vanillaSpecialItemsList = new HashMap<String, Boolean>();
-        HashMap<String, Boolean> DIYPlanetsSpecialItemsList = new HashMap<String, Boolean>();
 
-        // Get all the items to add via tags or hardcoded ids
         for (SpecialItemSpecAPI spec : Global.getSettings().getAllSpecialItemSpecs()) {
-            // Includes all the vanilla special items
-            final String[] vanillaItemIDs = { "pather4", "hist3t" };
-
-            // Hardcoded for DIY planets atm, as they dont have any tags
-            final String[] DIYPlanetsItemIDs = { "atmo_mineralizer", "atmo_sublimator", "solar_reflector",
-                    "tectonic_attenuator", "weather_core", "climate_sculptor", "gravity_oscillator", "rad_remover" };
-
-            for (String itemTag : spec.getTags()) {
-                // These should never "clash" but use continue just to be sure
-                if (Arrays.asList(vanillaItemIDs).contains(itemTag)) {
-                    vanillaSpecialItemsList.put(spec.getId(), true);
-                    continue;
-                }
-                if (Arrays.asList(DIYPlanetsItemIDs).contains(spec.getId())) {
-                    DIYPlanetsSpecialItemsList.put(spec.getId(), true);
-                    continue;
-                }
+            if (!isUsableSpecialItem(spec)) {
+                continue;
             }
+            // Items you learn from only need 1, the rest get 1 to market level, clamp to 3
+            int quantity = 1;
+            if (!isBlueprintPackage(spec)) {
+                quantity = Math.min(itemGenRandom.nextInt(techMarketLevel) + 1, 3);
+            }
+            log.info("Adding special item " + spec.getId() + " with quantity " + quantity);
+            cargo.addSpecial(new SpecialItemData(spec.getId(), null), quantity);
         }
 
-        // Now Pick based on the techMarketLevel
-        // Take random 20% of total items per market level
-        // Use 20% of each list for more even distribution
-        // Quantity is random number from 1 to market level
-        // Make our random picker list
-        WeightedRandomPicker<String> randomVanillaPicker = new WeightedRandomPicker<>(itemGenRandom);
-        WeightedRandomPicker<String> randomDIYPicker = new WeightedRandomPicker<>(itemGenRandom);
-        for (HashMap.Entry<String, Boolean> item : vanillaSpecialItemsList.entrySet()) {
-            randomVanillaPicker.add(item.getKey());
-        }
-        for (HashMap.Entry<String, Boolean> item : DIYPlanetsSpecialItemsList.entrySet()) {
-            randomDIYPicker.add(item.getKey());
-        }
+        addModSpecs();
+    }
 
-        float totalItems = randomVanillaPicker.getTotal() + randomDIYPicker.getTotal();
+    protected boolean isUsableSpecialItem(SpecialItemSpecAPI spec) {
+        String id = spec.getId();
+        if (Arrays.asList(TEMPLATE_ITEM_IDS).contains(id) || spec.hasTag("single_bp")) {
+            return false;
+        }
+        if (Arrays.asList(EXTRA_USABLE_ITEM_IDS).contains(id) || Arrays.asList(DIY_PLANETS_ITEM_IDS).contains(id)) {
+            return true;
+        }
+        // Quest items (Janus Device, the inert planetkiller...) stay with their quests
+        if (spec.hasTag("mission_item")) {
+            return false;
+        }
+        // Colony items, including modded ones that only register an effect
+        boolean colonyItem = spec.hasTag("colony_item") || ItemEffectsRepo.ITEM_EFFECTS.containsKey(id);
+        boolean usable = colonyItem || isBlueprintPackage(spec);
 
-        // Then add the items
-        int itemPickerNum = Math.round(((totalItems / 5) * techMarketLevel));
-        for (int i = 0; i < itemPickerNum; i++) {
-            if (!randomVanillaPicker.isEmpty()) {
-                String itemID = randomVanillaPicker.pickAndRemove();
-                // Guaranteed to get at least 1, more based on tech level, clamp to 3
-                int quantity = itemGenRandom.nextInt(techMarketLevel) + 1;
-                quantity = Math.min(quantity, 3);
-                log.info("Trying to add " + itemID + " with quantity " + quantity);
-                cargo.addSpecial(new SpecialItemData(itemID, null), quantity);
+        // Check that the item works without a target, and look for a right-click use
+        try {
+            CargoStackAPI stack = Global.getFactory().createCargoStack(CargoItemType.SPECIAL,
+                    new SpecialItemData(id, null), null);
+            SpecialItemPlugin plugin = spec.getNewPluginInstance(stack);
+            if (plugin == null || plugin.getName() == null) {
+                return false;
             }
-            if (!randomDIYPicker.isEmpty()) {
-                String itemID = randomDIYPicker.pickAndRemove();
-                // Guaranteed to get at least 1, more based on tech level, clamp to 3
-                int quantity = itemGenRandom.nextInt(techMarketLevel) + 1;
-                quantity = Math.min(quantity, 3);
-                log.info("Trying to add " + itemID + " with quantity " + quantity);
-                cargo.addSpecial(new SpecialItemData(itemID, null), quantity);
+            if (plugin.hasRightClickAction()) {
+                usable = true;
             }
+        } catch (Throwable t) {
+            log.info("Skipping special item " + id + ", it doesn't work without a target");
+            return false;
+        }
+        return usable;
+    }
+
+    protected boolean isBlueprintPackage(SpecialItemSpecAPI spec) {
+        for (String tag : spec.getTags()) {
+            if (tag.endsWith("package_bp")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // One modspec for every hull mod the player can learn and doesn't know yet
+    protected void addModSpecs() {
+        CargoAPI cargo = getCargo();
+        FactionAPI player = Global.getSector().getPlayerFaction();
+        for (HullModSpecAPI spec : Global.getSettings().getAllHullModSpecs()) {
+            if (spec.isHidden() || spec.isHiddenEverywhere() || spec.isAlwaysUnlocked()
+                    || spec.hasTag(Tags.HULLMOD_NO_DROP) || spec.hasTag(Tags.HULLMOD_DMOD)
+                    || player.knowsHullMod(spec.getId())) {
+                continue;
+            }
+            cargo.addSpecial(new SpecialItemData(MODSPEC_ID, spec.getId()), 1);
         }
     }
 

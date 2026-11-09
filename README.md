@@ -7,7 +7,8 @@ Meeting him will create a submarket at his location that sells items such as AI 
 
 The inital contact will start once the Player is Level 5. An intel message will tell you where to meet Chicken for the introduction scene.
 This will unlock Chickens Tech Shop, a special submarket which gives you access to AI cores, Special Items and Blueprints.
-The number of items available for sale increases as you do contracts for Chicken. Once you reach certain credit thresholds the Tech market will increase in level, giving more options.
+The shop stocks every special item you can use: all colony items (including ones added by other mods), every blueprint package, items with a right-click use, wormhole anchors and scanners, Shrouded items, DIY Planets items, and a modspec for every hull mod you don't know yet.
+The number of blueprints and AI cores, and how many of each special item are in stock, increase as you do contracts for Chicken. Once you reach certain credit thresholds the Tech market will increase in level, giving more options.
 Chickens missions are based of Vanilla ones (for now) with custom text.
 
 All feedback welcome.
