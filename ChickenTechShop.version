@@ -3,12 +3,12 @@
     "modName":"Chicken's Tech Shop",
     "modThreadId":26229,
     "modNexusId":84,
-    "directDownloadURL":"https://github.com/andrzejsokolowski/ChickenTechShop/releases/download/v0.3.0/ChickenTechShop-0.3.0.zip",
+    "directDownloadURL":"https://github.com/andrzejsokolowski/ChickenTechShop/releases/download/v0.3.1/ChickenTechShop-0.3.1.zip",
     "changelogURL":"https://raw.githubusercontent.com/andrzejsokolowski/ChickenTechShop/main/changelog.txt",
     "modVersion":
     {
         "major":0,
         "minor":3,
-        "patch":0
+        "patch":1
     }
 }

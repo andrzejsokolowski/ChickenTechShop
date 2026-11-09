@@ -1,3 +1,8 @@
+Version 0.3.1 (2026-11-10)
+- Chicken's Roost now starts with Chicken as a contact and all four submarkets open: no level requirement, no intro meeting and no "A Message from a friend" intel
+- The free Beta core from the intro meeting is gone with the meeting
+- Existing saves: the old "A Message from a friend" intel is removed and the shops open on load
+
 Version 0.3.0 (2026-11-09)
 - Chicken now has her own station, Chicken's Roost, next to Prism Freeport in Sitnalta (without Nexerelin it goes next to Nova Maxios, or else next to an independent market)
 - The Tech Market is split into four submarkets on the station: Specials, Blueprints, Modspecs and AI Cores

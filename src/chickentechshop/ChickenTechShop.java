@@ -6,13 +6,10 @@ import lunalib.lunaSettings.LunaSettings;
 
 import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.BaseCampaignEventListener;
-import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
 import com.fs.starfarer.api.characters.PersonAPI;
-import com.fs.starfarer.api.impl.campaign.ids.Conditions;
 import com.fs.starfarer.api.impl.campaign.intel.misc.BreadcrumbIntel;
 
 import chickentechshop.campaign.intel.TechMarketContact;
@@ -25,10 +22,10 @@ public class ChickenTechShop extends BaseModPlugin {
 
     public static Logger log = Global.getLogger(ChickenTechShop.class);
 
-    final static int LEVEL_REQ = 5;
     public static final String MOD_ID = "chickentechshop";
     public static final String SETTING_STARTING_LEVEL = "cts_startingLevel";
     public static final String INTRO_COMPLETE_KEY = "$CTS_ChickenIntroComplete";
+    private static final String INTRO_MESSAGE_TITLE = "A Message from a friend";
 
     @Override
     public void onApplicationLoad() throws Exception {
@@ -68,9 +65,8 @@ public class ChickenTechShop extends BaseModPlugin {
             moveChickenToStation(chicken, oldMarket, station);
         }
 
-        if (Global.getSector().getMemoryWithoutUpdate().getBoolean(INTRO_COMPLETE_KEY)) {
-            ChickenStation.addShops(station);
-        }
+        // No intro quest: the station opens with Chicken as a contact and every shop open
+        ChickenQuestUtils.openShopAndContact(station, null);
     }
 
     private void moveChickenToStation(PersonAPI chicken, MarketAPI oldMarket, MarketAPI station) {
@@ -111,60 +107,20 @@ public class ChickenTechShop extends BaseModPlugin {
 
     @Override
     public void onGameLoad(boolean newGame) {
-        //I'm adding this to fix the bug since chicken doesn't exist at later-game save
-        //Idk if it's the correct fix since this line adds chicken
         chickenInitialSetup();
-        
-        PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
-        if (chicken == null) {
-            return;
-        }
-        MarketAPI market = chicken.getMarket();
-        final SectorAPI sector = Global.getSector();
-
-        if (sector != null && sector.getListenerManager() != null) {
-            if (market != null) {
-                if (!market.hasCondition(Conditions.ABANDONED_STATION)
-                        || !market.hasCondition(Conditions.DECIVILIZED)) {
-                    sector.addTransientListener(new ChickenIntroCheck());
-                }
-            }
-        }
+        removeIntroMessages();
     }
 
     @Override
     public void onNewGameAfterTimePass() {
         chickenInitialSetup();
-        final SectorAPI sector = Global.getSector();
-        PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
-        MarketAPI market = chicken == null ? null : chicken.getMarket();
-        if (market == null) {
-            sector.removeListener(new ChickenIntroCheck());
-        }
-        if (Global.getSector().getIntelManager().hasIntelOfClass(TechMarketContact.class)) {
-            sector.removeListener(new ChickenIntroCheck());
-        }
     }
 
-    public class ChickenIntroCheck extends BaseCampaignEventListener {
-        public ChickenIntroCheck() {
-            super(false);
-        }
-
-        @Override
-        public void reportPlayerClosedMarket(final MarketAPI market) {
-            MarketAPI chickenMarket = ChickenQuestUtils.getChickenMarket().getPrimaryEntity().getMarket();
-            if (Global.getSector().getCharacterData().getPerson().getStats().getLevel() >= LEVEL_REQ) {
-                if (!Global.getSector().getIntelManager().hasIntelOfClass(TechMarketContact.class)) {
-                    BreadcrumbIntel intel = new BreadcrumbIntel(Global.getSector().getPlayerFleet(),
-                            ChickenQuestUtils.getChickenMarket().getPrimaryEntity());
-                    intel.setTitle("A Message from a friend");
-                    intel.setText(
-                            "You recieve a message from someone named \"Chicken\" who claims he has something for you on "
-                                    + chickenMarket.getName() + " in the " + chickenMarket.getStarSystem().getName());
-                    Global.getSector().getIntelManager().addIntel(intel, false);
-                    Global.getSector().removeListener(this);
-                }
+    // Saves from before 0.3.1 can still hold Chicken's "A Message from a friend" intel
+    private void removeIntroMessages() {
+        for (IntelInfoPlugin intel : Global.getSector().getIntelManager().getIntel(BreadcrumbIntel.class)) {
+            if (INTRO_MESSAGE_TITLE.equals(((BreadcrumbIntel) intel).getTitle())) {
+                Global.getSector().getIntelManager().removeIntel(intel);
             }
         }
     }

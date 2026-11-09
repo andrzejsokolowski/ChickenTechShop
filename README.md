@@ -5,9 +5,8 @@ Meeting him will create a submarket at his location that sells items such as AI 
 
 ## Information
 
-The inital contact will start once the Player is Level 5. An intel message will tell you where to meet Chicken for the introduction scene.
 Chicken lives on her own station, Chicken's Roost, next to Prism Freeport in Sitnalta (Nexerelin). Without Nexerelin the station goes next to Nova Maxios, or else next to an independent market.
-The introduction unlocks Chickens Tech Shop on that station: four submarkets for Specials, Blueprints, Modspecs and AI Cores.
+Chicken is a contact there from the start, and Chickens Tech Shop is open right away: four submarkets for Specials, Blueprints, Modspecs and AI Cores.
 Specials stocks every special item you can use: all colony items (including ones added by other mods), items with a right-click use, wormhole anchors and scanners, Shrouded items and DIY Planets items.
 Blueprints stocks every blueprint package plus rare ship, weapon and fighter blueprints. Modspecs stocks a modspec for every hull mod you don't know yet. AI Cores stocks Gamma, Beta and Alpha cores.
 The number of blueprints and AI cores, and how many of each special item are in stock, increase as you do contracts for Chicken. Once you reach certain credit thresholds the Tech market will increase in level, giving more options.
