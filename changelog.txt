@@ -1,3 +1,11 @@
+Version 0.3.0 (2026-11-09)
+- Chicken now has her own station, Chicken's Roost, next to Prism Freeport in Sitnalta (without Nexerelin it goes next to Nova Maxios, or else next to an independent market)
+- The Tech Market is split into four submarkets on the station: Specials, Blueprints, Modspecs and AI Cores
+- Blueprint packages moved from the special items to the Blueprints submarket
+- The Modspecs submarket restocks on every visit, so a hull mod you learn disappears from it at once
+- Existing saves: Chicken moves to the new station on load, and the Tech Market keeps its level and progress
+- Fixed Chicken being created again on every save load
+
 Version 0.2.0 (2026-11-09)
 - The Tech Market now stocks every special item you can use: all colony items (including modded ones), every blueprint package, items with a right-click use, wormhole anchors and scanners, Shrouded items and DIY Planets items
 - The Tech Market now sells a modspec for every hull mod you don't know yet

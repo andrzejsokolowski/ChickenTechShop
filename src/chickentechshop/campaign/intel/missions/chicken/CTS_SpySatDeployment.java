@@ -2,12 +2,11 @@ package chickentechshop.campaign.intel.missions.chicken;
 
 import java.util.Random;
 
-import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Tags;
 import com.fs.starfarer.api.impl.campaign.missions.SpySatDeployment;
 import com.fs.starfarer.api.util.Misc;
 
-import chickentechshop.campaign.submarkets.TechMarket;
+import chickentechshop.campaign.submarkets.ChickenMarketLevel;
 
 public class CTS_SpySatDeployment extends SpySatDeployment {
 
@@ -43,8 +42,6 @@ public class CTS_SpySatDeployment extends SpySatDeployment {
 		super.notifyEnding();
 
 		// Add to Chickens Tech market Level
-		MarketAPI market = ChickenQuestUtils.getChickenMarket();
-		TechMarket submarket = (TechMarket) market.getSubmarket("chicken_market").getPlugin();
-		submarket.addCreditsToTechMarket(creditReward);
+		ChickenMarketLevel.addCredits(creditReward);
 	}
 }

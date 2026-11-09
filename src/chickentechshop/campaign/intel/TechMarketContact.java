@@ -13,7 +13,7 @@ import com.fs.starfarer.api.ui.UIComponentAPI;
 import com.fs.starfarer.api.util.Misc;
 
 import chickentechshop.campaign.intel.missions.chicken.ChickenQuestUtils;
-import chickentechshop.campaign.submarkets.TechMarket;
+import chickentechshop.campaign.submarkets.ChickenMarketLevel;
 
 /**
  * Based of the SpecialMarketContact from Nexerelin
@@ -93,15 +93,14 @@ public class TechMarketContact extends ContactIntel {
 
         // Tech Market Info
         MarketAPI market = ChickenQuestUtils.getChickenMarket();
-        TechMarket submarket = (TechMarket) market.getSubmarket("chicken_market").getPlugin();
+        int level = ChickenMarketLevel.getLevel();
         info.addPara(
                 person.getNameString() + " owns a Tech Market " + market.getOnOrAt() + " " + market.getName() + ".",
                 5f);
-        info.addPara("The Tech Market is currently at Level " + submarket.getTechMarketLevel() + ".", 5f, h,
-                "Level " + submarket.getTechMarketLevel());
-        if (submarket.getTechMarketLevel() < 5) {
-            info.addPara(submarket.ToNextLevelCreditsString() + " Credits to next level", 5f, h,
-                    submarket.ToNextLevelCreditsString() + " Credits");
+        info.addPara("The Tech Market is currently at Level " + level + ".", 5f, h, "Level " + level);
+        if (level < ChickenMarketLevel.MAX_LEVEL) {
+            info.addPara(ChickenMarketLevel.toNextLevelCreditsString() + " Credits to next level", 5f, h,
+                    ChickenMarketLevel.toNextLevelCreditsString() + " Credits");
         }
 
         long ts = BaseMissionHub.getLastOpenedTimestamp(person);

@@ -1,9 +1,5 @@
 package chickentechshop;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
-
 import org.apache.log4j.Logger;
 
 import lunalib.lunaSettings.LunaSettings;
@@ -12,14 +8,18 @@ import com.fs.starfarer.api.BaseModPlugin;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.BaseCampaignEventListener;
 import com.fs.starfarer.api.campaign.SectorAPI;
-import com.fs.starfarer.api.campaign.SectorEntityToken;
+import com.fs.starfarer.api.campaign.comm.IntelInfoPlugin;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
+import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
+import com.fs.starfarer.api.characters.PersonAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Conditions;
-import com.fs.starfarer.api.impl.campaign.ids.Factions;
 import com.fs.starfarer.api.impl.campaign.intel.misc.BreadcrumbIntel;
 
 import chickentechshop.campaign.intel.TechMarketContact;
 import chickentechshop.campaign.intel.missions.chicken.ChickenQuestUtils;
+import chickentechshop.campaign.submarkets.ChickenMarketLevel;
+import chickentechshop.campaign.submarkets.TechMarket;
+import chickentechshop.campaign.world.ChickenStation;
 
 public class ChickenTechShop extends BaseModPlugin {
 
@@ -28,6 +28,7 @@ public class ChickenTechShop extends BaseModPlugin {
     final static int LEVEL_REQ = 5;
     public static final String MOD_ID = "chickentechshop";
     public static final String SETTING_STARTING_LEVEL = "cts_startingLevel";
+    public static final String INTRO_COMPLETE_KEY = "$CTS_ChickenIntroComplete";
 
     @Override
     public void onApplicationLoad() throws Exception {
@@ -45,63 +46,67 @@ public class ChickenTechShop extends BaseModPlugin {
         }
     }
 
-    // Inital setup, create chicken at the correct location
-    // Or dont if she already exists
-    // Choices are (in order)
-    // 1. Prism Starport
-    // 2. Nova Maxios
-    // 3. Random Independent world/station/market
-    // 4. PANIC PICK ANYWHERE AHHHHHHHH (Just pick any market)
-    // 5. Its over :'( (Dont Spawn)
+    // Inital setup: make sure Chicken's station exists and Chicken lives there.
+    // Saves from before 0.3.0 have Chicken and her single Tech Market on another
+    // market (usually Prism Freeport), so move both over to the station.
     public void chickenInitialSetup() {
-        Random random = new Random();
-
-        // Choose our start location for Chicken
-        // Prisim Starport
-        MarketAPI market;
-        SectorEntityToken entity;
-        entity = Global.getSector().getEntityById("nex_prismFreeport");
-        if (entity != null) {
-            market = entity.getMarket();
-            ChickenQuestUtils.createChicken(market);
+        MarketAPI station = ChickenStation.getOrCreateMarket();
+        if (station == null) {
+            // If we reach this point, all hope is lost
+            log.error("Could not find a valid market to spawn Chicken at!");
             return;
         }
 
-        // Nova Maxios
-        entity = Global.getSector().getEntityById("new_maxios");
-        if (entity != null) {
-            market = entity.getMarket();
-            ChickenQuestUtils.createChicken(market);
-            return;
+        PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
+        if (chicken == null) {
+            ChickenQuestUtils.createChicken(station);
+            chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
         }
 
-        // An Indepedent/Any! Market
-        List<MarketAPI> allMarkets = Global.getSector().getEconomy().getMarketsCopy();
-        List<MarketAPI> allIndependentMarkets = new ArrayList<MarketAPI>();
+        MarketAPI oldMarket = chicken.getMarket();
+        if (oldMarket != station) {
+            moveChickenToStation(chicken, oldMarket, station);
+        }
 
-        for (MarketAPI m : allMarkets) {
-            if (m.getFactionId() == Factions.INDEPENDENT) {
-                allIndependentMarkets.add(m);
+        if (Global.getSector().getMemoryWithoutUpdate().getBoolean(INTRO_COMPLETE_KEY)) {
+            ChickenStation.addShops(station);
+        }
+    }
+
+    private void moveChickenToStation(PersonAPI chicken, MarketAPI oldMarket, MarketAPI station) {
+        if (oldMarket != null) {
+            // Carry the old Tech Market's level over, then close it
+            SubmarketAPI oldShop = oldMarket.getSubmarket(ChickenStation.SHOP_SPECIALS);
+            if (oldShop != null) {
+                if (oldShop.getPlugin() instanceof TechMarket && !ChickenMarketLevel.isSet()) {
+                    TechMarket legacy = (TechMarket) oldShop.getPlugin();
+                    ChickenMarketLevel.setLevel(legacy.getLegacyLevel());
+                    ChickenMarketLevel.setCredits(legacy.getLegacyCredits());
+                }
+                oldMarket.removeSubmarket(ChickenStation.SHOP_SPECIALS);
+            }
+            // Older versions re-created Chicken on every load, so there can be several copies here
+            for (PersonAPI person : oldMarket.getPeopleCopy()) {
+                if (ChickenQuestUtils.PERSON_CHICKEN.equals(person.getId())) {
+                    oldMarket.removePerson(person);
+                    if (oldMarket.getCommDirectory() != null) {
+                        oldMarket.getCommDirectory().removePerson(person);
+                    }
+                }
             }
         }
 
-        if (allIndependentMarkets.size() > 0) {
-            int randomMarket = random.nextInt(allIndependentMarkets.size());
-            if (allIndependentMarkets.get(randomMarket) != null) {
-                ChickenQuestUtils.createChicken(allIndependentMarkets.get(randomMarket));
-                return;
-            }
+        TechMarketContact contact = null;
+        for (IntelInfoPlugin intel : Global.getSector().getIntelManager().getIntel(TechMarketContact.class)) {
+            contact = (TechMarketContact) intel;
+        }
+        if (contact != null) {
+            contact.relocateToMarket(station, false);
         } else {
-            int randomMarket = random.nextInt(allMarkets.size());
-            if (allMarkets.get(randomMarket) != null) {
-                ChickenQuestUtils.createChicken(allMarkets.get(randomMarket));
-                return;
-            }
+            chicken.setMarket(station);
+            station.addPerson(chicken);
         }
-
-        // If we reach this point, all hope is lost
-        log.error("Could not find a valid market to spawn Chicken at!");
-
+        log.info("Moved Chicken to " + station.getName());
     }
 
     @Override
@@ -110,8 +115,11 @@ public class ChickenTechShop extends BaseModPlugin {
         //Idk if it's the correct fix since this line adds chicken
         chickenInitialSetup();
         
-        MarketAPI market = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN)
-                .getMarket();
+        PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
+        if (chicken == null) {
+            return;
+        }
+        MarketAPI market = chicken.getMarket();
         final SectorAPI sector = Global.getSector();
 
         if (sector != null && sector.getListenerManager() != null) {
@@ -128,8 +136,8 @@ public class ChickenTechShop extends BaseModPlugin {
     public void onNewGameAfterTimePass() {
         chickenInitialSetup();
         final SectorAPI sector = Global.getSector();
-        MarketAPI market = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN)
-                .getMarket();
+        PersonAPI chicken = Global.getSector().getImportantPeople().getPerson(ChickenQuestUtils.PERSON_CHICKEN);
+        MarketAPI market = chicken == null ? null : chicken.getMarket();
         if (market == null) {
             sector.removeListener(new ChickenIntroCheck());
         }

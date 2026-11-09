@@ -16,7 +16,7 @@ He pulls a bag from underneath the desk and lifts it onto the table, clattering 
 CTS_MeetChickenIntro_Finish,DialogOptionSelected,$option == CTS_MeetChickenIntro_Finish,"CTS_CreateSubmarketAndChickenContact
 AddRemoveCommodity beta_core 1
 $global.CTS_ChickenIntroComplete = true
-AddTextSmall ""You now have access to Chicken's Tech Shop! Check the Trade screen for the new submarket"" good
+AddTextSmall ""You now have access to Chicken's Tech Shop! Check the Trade screen for the new submarkets"" good
 AddTextSmall ""Doing contracts for Chicken will increase the number of items available for purchase in his Tech market"" highlight
 RemoveBarEvent CTS_MeetChickenIntro_1 ""Approach the spacer"" ""A spacer wearing a grimy hardsuit with a full face mask is sitting in a table area, tinkering with an array of electrical components, he looks up at you as you walk in and motions with his hand.""","Inside the box, you find a Beta Core, neatly packed into a tight cushioned space.
 

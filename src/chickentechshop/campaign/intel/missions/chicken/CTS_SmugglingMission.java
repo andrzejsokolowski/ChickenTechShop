@@ -1,8 +1,7 @@
 package chickentechshop.campaign.intel.missions.chicken;
 
-import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.impl.campaign.missions.SmugglingMission;
-import chickentechshop.campaign.submarkets.TechMarket;
+import chickentechshop.campaign.submarkets.ChickenMarketLevel;
 
 public class CTS_SmugglingMission extends SmugglingMission {
 
@@ -11,8 +10,6 @@ public class CTS_SmugglingMission extends SmugglingMission {
 		super.notifyEnding();
 
 		// Add to Chickens Tech market Level
-		MarketAPI market = ChickenQuestUtils.getChickenMarket();
-		TechMarket submarket = (TechMarket) market.getSubmarket("chicken_market").getPlugin();
-		submarket.addCreditsToTechMarket(creditReward);
+		ChickenMarketLevel.addCredits(creditReward);
 	}
 }

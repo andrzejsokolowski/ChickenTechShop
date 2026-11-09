@@ -3,11 +3,9 @@ package chickentechshop.campaign.rulecmd;
 import com.fs.starfarer.api.campaign.rules.MemoryAPI;
 import com.fs.starfarer.api.impl.campaign.rulecmd.BaseCommandPlugin;
 import com.fs.starfarer.api.campaign.InteractionDialogAPI;
-import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.util.Misc;
 
-import chickentechshop.campaign.intel.missions.chicken.ChickenQuestUtils;
-import chickentechshop.campaign.submarkets.TechMarket;
+import chickentechshop.campaign.submarkets.ChickenMarketLevel;
 
 import java.util.List;
 import java.util.Map;
@@ -23,9 +21,7 @@ public class CTS_ResetTechMarketInventory extends BaseCommandPlugin {
         if (dialog == null) {
             return false;
         }
-        MarketAPI market = ChickenQuestUtils.getChickenMarket();
-        TechMarket submarket = (TechMarket) market.getSubmarket("chicken_market").getPlugin();
-        submarket.updateCargoForce();
+        ChickenMarketLevel.refreshShops();
 
         return true;
     }
