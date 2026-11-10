@@ -1,3 +1,9 @@
+Version 0.3.2 (2026-11-10)
+- Fixed a crash in Chicken's Tech - Specials: the Halo Dynamics Simulacrum was stocked without a ship
+- One-off and quest rewards are no longer sold in Specials: items the game never drops at random (such as the planetkiller with JaydeePiracy, the Omega processor, VIC's Ambrosia Nectar), Crab Shack items, Captain's Quarters quest and unique pieces, and the wormhole scanner
+- Existing saves: those items are taken off Chicken's shelves on load
+- New file data/config/chickentechshop/excluded_items.csv lists further items, mods or tags to keep out of the shop
+
 Version 0.3.1 (2026-11-10)
 - Chicken's Roost now starts with Chicken as a contact and all four submarkets open: no level requirement, no intro meeting and no "A Message from a friend" intel
 - The free Beta core from the intro meeting is gone with the meeting

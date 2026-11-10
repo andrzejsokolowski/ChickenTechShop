@@ -1,0 +1,10 @@
+id,type,reason
+# type: item = one special item id; mod = every special item that mod's special_items.csv adds; tag = every item with that tag
+# Other mods can add rows to this file (it is merged by id).
+crabshack,mod,Crab Shack items come from fishing and the Crab Shack itself
+cq_pool_quest,tag,Captain's Quarters quest rewards
+cq_pool_unique,tag,Captain's Quarters unique pieces
+cq_pool_guaranteed,tag,Captain's Quarters fixed rewards
+HSISA_ShipProvider,item,Halo Dynamics Simulacrum needs a ship and crashes the trade screen without one
+et_crate,item,Exotica crate is empty without its contents
+special_vulpoid_codex,item,Vulpoids codex entry

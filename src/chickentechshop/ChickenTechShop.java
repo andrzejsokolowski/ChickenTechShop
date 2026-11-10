@@ -109,6 +109,7 @@ public class ChickenTechShop extends BaseModPlugin {
     public void onGameLoad(boolean newGame) {
         chickenInitialSetup();
         removeIntroMessages();
+        ChickenMarketLevel.removeUnlistedItems();
     }
 
     @Override

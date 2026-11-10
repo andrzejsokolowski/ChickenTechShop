@@ -90,6 +90,20 @@ public class ChickenMarketLevel {
         }
     }
 
+    // Take items that are no longer sold off Chicken's shelves (run on every load)
+    public static void removeUnlistedItems() {
+        MarketAPI market = ChickenStation.getMarket();
+        if (market == null) {
+            return;
+        }
+        for (String id : ChickenStation.SHOP_IDS) {
+            SubmarketAPI submarket = market.getSubmarket(id);
+            if (submarket != null && submarket.getPlugin() instanceof TechMarket) {
+                ((TechMarket) submarket.getPlugin()).removeUnlistedItems();
+            }
+        }
+    }
+
     private static int clamp(int level) {
         return Math.max(1, Math.min(MAX_LEVEL, level));
     }
